@@ -1,0 +1,1 @@
+print('CMPUT291 MINI PROJECT 01')

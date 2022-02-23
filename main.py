@@ -301,4 +301,4 @@ def main():
             time.sleep(1)
             os.system('cls||clear')
 
-sessionEnd(3711)
+main()

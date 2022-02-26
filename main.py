@@ -3,9 +3,10 @@ import random    # used for generating random id's
 import time      # used for sleeps & date manipulation   
 import sqlite3   # used for sql database manipulation
 import datetime  # used for recording session times 
+import select
 
 # change database name as needed
-data = sqlite3.connect('testdata.db')
+data = sqlite3.connect('C:/sqlite/mini-project2/mp2.db')
 cursor = data.cursor()
 
 def loginScreen(user = 1):
@@ -271,8 +272,7 @@ def main():
                 sessionStart(cid)
                 print('Session started!')
             elif option == '2':
-                # search for movies
-                pass
+                select.searchMovies(cursor)
             elif option == '3':
                 # end watching movie
                 pass

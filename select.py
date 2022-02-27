@@ -37,7 +37,7 @@ def searchWords(cursor):
     for key in keys:
         if key != '':   #Makes sure no results are returned if user inputs nothing.
             key = '%' + key + '%'
-            cursor.execute("SELECT DISTINCT title, year, runtime \
+            cursor.execute("SELECT DISTINCT title, year, runtime, m.mid \
                             FROM movies m, casts c, moviePeople mp \
                             WHERE m.mid = c.mid AND c.pid = mp.pid \
                             AND (m.title LIKE :key OR mp.name LIKE :key OR c.role LIKE :key);", {"key": key})
@@ -121,10 +121,57 @@ def displayMatches(matches):
     return choice
 
 
+def askMovie(movies, selection, cursor):
+    os.system('cls||clear')
+    print('Would you like to:\n[1] Find out more information about \'' + movies[selection][0] + '\'\n[2] Proceed to the screen')
+    uchoice = input('Please type choice here: ')
+    
+    while uchoice not in ['1', '2']:
+        os.system('cls||clear')
+        print('ERROR: Invalid selection, please try again and make sure you type just the corresponding number.\n')
+        print('Would you like to:\n[1] Find out more information about \'' + movies[selection][0] + '\'\n[2] Proceed to the screen')
+        uchoice = input('Please type choice here: ')
+    
+    os.system('cls||clear')
+    selectedtitle = movies[selection][0]
+    selectedyear = movies[selection][1]
+    selectedruntime = movies[selection][2]
+    selectedmid = movies[selection][3]
+    if uchoice == '1':
+        
+        cursor.execute('SELECT COUNT(*) \
+                        FROM movies m, watch w \
+                        WHERE m.mid = w.mid AND w.duration >= (m.runtime/2) \
+                        AND m.mid = :selectedmid', {"selectedmid": selectedmid})
+        numwatched = cursor.fetchone()[0]       
+        
+        cursor.execute('SELECT mp.pid, mp.name, c.role \
+                        FROM movies m, moviePeople mp, casts c \
+                        WHERE mp.pid = c.pid AND m.mid = c.mid \
+                        AND m.mid = :selectedmid', {"selectedmid": selectedmid})     
+        castinfo = cursor.fetchall()
+        print('Movie information - \'' + selectedtitle + '\':\n')
+        print('Release year:', selectedyear)
+        print('       Views:', numwatched)
+        print('     Runtime:', selectedruntime, 'minutes')
+        print('        Cast:')
+        for actor in castinfo:
+            actorname = actor[1]
+            actorrole = actor[2]
+            print('\t\t' + actorname, 'as', actorrole)
+        
+        
+        input('\n Press enter to return...')
+        
+    
+        
+    return
+
 def searchMovies(cursor):
     os.system('cls||clear')
-    hits_count = searchWords(cursor)
+    hits_sorted = searchWords(cursor)
     os.system('cls||clear')
-    movie_selected = displayMatches(hits_count)
+    movie_selected = displayMatches(hits_sorted)
+    askMovie(hits_sorted, movie_selected, cursor)
     return
 

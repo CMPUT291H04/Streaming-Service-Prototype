@@ -272,7 +272,7 @@ def main():
                 sessionStart(cid)
                 print('Session started!')
             elif option == '2':
-                select.searchMovies(cursor)
+                select.searchMovies(cursor, data, cid)
             elif option == '3':
                 # end watching movie
                 pass

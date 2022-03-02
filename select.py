@@ -1,6 +1,9 @@
 import	sqlite3
 import os
+from time import perf_counter
 
+global watchingList
+watchingList = []
 
 def printMovieInfo(movies, selection, cursor):
     '''Displays more information about a selected movie.
@@ -122,6 +125,10 @@ def followCastMenu(movies, selection, cursor, data, cid):
     return
 
 
+def endMovie():
+    global watchingList
+    print(watchingList)
+    return
 
 def movieScreenMenu(movies, selection, cursor, data, cid, sid):
     '''Displays the movie screen.
@@ -157,8 +164,9 @@ def movieScreenMenu(movies, selection, cursor, data, cid, sid):
             input('\nPress enter to return...')
         
         else:
-            pass
-              
+            global watchingList
+            watchingList.append((selectedtitle, perf_counter()))          #perfcounter records the current CPU time.
+            
         return
     
     
@@ -345,13 +353,14 @@ def searchWordsMenu(cursor):
 
 
 
-def searchMovies(cursor, data, cid, sid):
+def handleMovies(cursor, data, cid, sid):
     '''Manages the movie search section.
     Args:
             None
     Returns:
             None
     ''' 
+    
     os.system('cls||clear')
     hits_sorted = searchWordsMenu(cursor)
     

@@ -204,7 +204,6 @@ def sessionEnd(sid):
 
     ''' Still need to figure out how we track how long the user has been wathcing a movie'''
 
-
 def main():
     while True:
         sessionOpen = False
@@ -282,12 +281,11 @@ def main():
                     print('Session started!')
             elif option == '2':
                 if sessionOpen:
-                    select.searchMovies(cursor, data, cid, sid)
+                    select.handleMovies(cursor, data, cid, sid)
                 else:
-                    select.searchMovies(cursor, data, cid, None)
+                    select.handleMovies(cursor, data, cid, None)
             elif option == '3':
-                # end watching movie
-                pass
+                select.endMovie()
             elif option == '4':
                 cursor.execute('SELECT * FROM sessions WHERE cid = (?)',(cid,))
                 session = cursor.fetchone()

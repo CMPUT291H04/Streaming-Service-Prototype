@@ -3,6 +3,7 @@ import random    # used for generating random id's
 import time      # used for sleeps & date manipulation   
 import sqlite3   # used for sql database manipulation
 import datetime  # used for recording session times 
+import select
 
 # change database name as needed
 data = sqlite3.connect('testdata.db')
@@ -206,6 +207,7 @@ def sessionEnd(sid):
 
 def main():
     while True:
+        sessionOpen = False
         os.system('cls||clear')     # these commands clear the terminal to make it look nicer
         editor = False
         while True:
@@ -243,8 +245,12 @@ def main():
                 print('[3] Register a new editor')
             else:
                 cursor.execute('SELECT * FROM customers WHERE cid = (?)',(cid,))
-                print(cursor.fetchall())
                 print(f'Welcome {name}!\n')
+                if sessionOpen == True:
+                    cursor.execute('SELECT * FROM sessions WHERE cid = (?)',(cid,))
+                    session = cursor.fetchone()
+                    sid = session[0]
+                    print(f'Current session open: {sid}')
                 print('Please select an option below')
                 print('[1] Begin a new session')
                 print('[2] Search for movies')
@@ -268,31 +274,24 @@ def main():
                 # register a new editor
                 newUserScreen(2)
             elif option == '1':
-                sessionStart(cid)
-                print('Session started!')
+                if sessionOpen == True:
+                    print('You already have a session open!')
+                else:
+                    sessionStart(cid)
+                    sessionOpen = True
+                    print('Session started!')
             elif option == '2':
-                # search for movies
-                pass
+                select.searchMovies(cursor, data, cid)
             elif option == '3':
                 # end watching movie
                 pass
             elif option == '4':
                 cursor.execute('SELECT * FROM sessions WHERE cid = (?)',(cid,))
-                session = cursor.fetchall()
-                print(session)
-                sessionCount = len(session)
-                if sessionCount > 1:
-                    print(f'You currently have {sessionCount} sessions open')
-                    closeNum = input('Which session would you like to close? ')
-                    
-                    sid = session[int(closeNum)-1][0]
-                    print(f'You are closing session {closeNum}')
-                    sessionEnd(sid)
-
-                else:
-                    sid = session[int(closeNum)][0]
-                    print('Closing your session...')
-                    sessionEnd(sid)
+                session = cursor.fetchone()
+                sid = session[0]
+                print('Closing your session...')
+                sessionEnd(sid)
+                sessionOpen = False
             
             else:
                 print('Invalid option, Please Try again')

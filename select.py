@@ -123,7 +123,7 @@ def followCastMenu(movies, selection, cursor, data, cid):
 
 
 
-def movieScreenMenu(movies, selection, cursor, data, cid):
+def movieScreenMenu(movies, selection, cursor, data, cid, sid):
     '''Displays the movie screen.
      Args:
             -matches: A list containing tuples.
@@ -138,23 +138,32 @@ def movieScreenMenu(movies, selection, cursor, data, cid):
     selectedmid = movies[selection][3]
     
     
-    print('You are now in \"' + selectedtitle + '\'s\" ' + 'movie screen, please select one of the following:\n[1]Follow a member of the cast\n[2]Watch movie')
+    print('You are now in \"' + selectedtitle + '\'s\" ' + 'movie screen, please select one of the following:\n[1]Follow a member of the cast\n[2]Watch movie\n')
     mchoice = input('Please type choice here: ')    
     while mchoice not in ['1', '2']:
         os.system('cls||clear')
         print('ERROR: Invalid selection, please try again and make sure you type just the corresponding number.\n')
-        print('You are now in \"' + selectedtitle + '\'s\" ' + 'movie screen, please select one of the following:\n[1]Follow a member of the cast\n[2]Watch movie')
+        print('You are now in \"' + selectedtitle + '\'s\" ' + 'movie screen, please select one of the following:\n[1]Follow a member of the cast\n[2]Watch movie\n')
         mchoice = input('Please type choice here: ')
     
     if mchoice == '1':
         os.system('cls||clear')
         followCastMenu(movies, selection, cursor, data, cid)
+    
+    else:
+        
+        if sid == None:
+            print("\nERROR: You can't watch a movie without starting a session first. Please start a session and attempt this action again.")
+            input('\nPress enter to return...')
+        
+        else:
+            pass
               
         return
     
     
     
-def askMovieMenu(movies, selection, cursor, data, cid):
+def askMovieMenu(movies, selection, cursor, data, cid, sid):
     '''Displays options the users can go through after choosing a movie.
      Args:
             -matches: A list containing tuples.
@@ -179,7 +188,7 @@ def askMovieMenu(movies, selection, cursor, data, cid):
         printMovieInfo(movies, selection, cursor)     
     
     else:
-        movieScreenMenu(movies, selection, cursor, data, cid)
+        movieScreenMenu(movies, selection, cursor, data, cid, sid)
        
     return
 
@@ -336,7 +345,7 @@ def searchWordsMenu(cursor):
 
 
 
-def searchMovies(cursor, data, cid):
+def searchMovies(cursor, data, cid, sid):
     '''Manages the movie search section.
     Args:
             None
@@ -351,7 +360,7 @@ def searchMovies(cursor, data, cid):
     
     if movie_selected != -1:
         os.system('cls||clear')
-        askMovieMenu(hits_sorted, movie_selected, cursor, data, cid)
+        askMovieMenu(hits_sorted, movie_selected, cursor, data, cid, sid)
     
     return
 

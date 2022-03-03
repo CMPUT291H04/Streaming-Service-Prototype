@@ -280,6 +280,7 @@ def main():
                     sessionOpen = True
                     print('Session started!')
             elif option == '2':
+                print(sid)
                 if sessionOpen:
                     select.handleMovies(cursor, data, cid, sid)
                 else:

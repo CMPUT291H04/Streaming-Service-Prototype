@@ -126,29 +126,57 @@ def followCastMenu(movies, selection, cursor, data, cid):
 
 
 
+def endOneMovieFromOne(cursor, data, cid, sid):
+    mid = watchingList[0][0]
+    title = watchingList[0][1]
+    runtime = watchingList[0][2]
+    timestarted = watchingList[0][3] 
+    
+    print("Are you sure you want to stop watching", title + " (y/n)?", end = '')
+    stopchoice = input().lower()        
+    while stopchoice not in ['y', 'n', 'yes', 'no']:
+        os.system('cls||clear')
+        print("ERROR: Invalid selection, please try again and make sure you type either 'y' or 'n'.\n")
+        print("Are you sure you want to stop watching", title + " (y/n)?", end = '')
+        stopchoice = input().lower()
+    
+    if stopchoice in ['n', 'no']:
+        pass
+    
+    else:    
+        duration = int((perf_counter() - timestarted)/60)        #Current time - time started, and converted to integer minutes (rounded down, design choice).
+        if duration > runtime:
+            duration = runtime
+        
+        cursor.execute("INSERT INTO watch VALUES (:sid, :cid, :mid, :duration);", {"sid": sid, "cid": cid, "mid": mid, "duration": duration})
+        data.commit()
+        
+        watchingList.pop()      #Remove only movie being watched from the watching list.
+        
+    return
+
+
+
+def endOneMovieFromMany(cursor, data, cid, sid):
+    
+    print("You are watching multiple movies, please select which one you want to stop watching:\n")
+    
+    pass
+    
+    return
+
+
+
 def endOneMovie(cursor, data, cid, sid):
     
     os.system('cls||clear') 
+    
     if len(watchingList) == 1:
-        
-        print("Are you sure you want to stop watching", watchingList[0][1] + " (y/n)?", end = '')
-        stopchoice = input().lower()        
-        while stopchoice not in ['y', 'n', 'yes', 'no']:
-            os.system('cls||clear')
-            print("ERROR: Invalid selection, please try again and make sure you type either 'y' or 'n'.\n")
-            print("Are you sure you want to stop watching", watchingList[0][1] + " (y/n)?", end = '')
-            stopchoice = input().lower()
-        
-        if stopchoice in ['n', 'no']:
-            pass
-        
-        else:
-            mid = watchingList[0][0]
-            duration = int((perf_counter - watchingList[0][2])/60)
-            print(duration)
-            #cursor.execute("INSERT INTO watch (:sid, :cid, :mid, :duration);", {"sid": sid, "cid": cid, "mid": mid, "duration": duration})
+        endOneMovieFromOne(cursor, data, cid, sid)
     
-    
+    else:
+        endOneMovieFromMany(cursor, data, cid, sid)
+     
     return
 
 
@@ -188,7 +216,7 @@ def movieScreenMenu(movies, selection, cursor, data, cid, sid):
         
         else:
             global watchingList
-            watchingList.append((selectedmid, selectedtitle, perf_counter()))          #perfcounter records the current CPU time.
+            watchingList.append((selectedmid, selectedtitle, selectedruntime, perf_counter()))          #perfcounter records the current CPU time.
             
         return
     

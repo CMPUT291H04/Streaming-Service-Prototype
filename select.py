@@ -125,10 +125,33 @@ def followCastMenu(movies, selection, cursor, data, cid):
     return
 
 
-def endMovie():
-    global watchingList
-    print(watchingList)
+
+def endOneMovie(cursor, data, cid, sid):
+    
+    os.system('cls||clear') 
+    if len(watchingList) == 1:
+        
+        print("Are you sure you want to stop watching", watchingList[0][1] + " (y/n)?", end = '')
+        stopchoice = input().lower()        
+        while stopchoice not in ['y', 'n', 'yes', 'no']:
+            os.system('cls||clear')
+            print("ERROR: Invalid selection, please try again and make sure you type either 'y' or 'n'.\n")
+            print("Are you sure you want to stop watching", watchingList[0][1] + " (y/n)?", end = '')
+            stopchoice = input().lower()
+        
+        if stopchoice in ['n', 'no']:
+            pass
+        
+        else:
+            mid = watchingList[0][0]
+            duration = int((perf_counter - watchingList[0][2])/60)
+            print(duration)
+            #cursor.execute("INSERT INTO watch (:sid, :cid, :mid, :duration);", {"sid": sid, "cid": cid, "mid": mid, "duration": duration})
+    
+    
     return
+
+
 
 def movieScreenMenu(movies, selection, cursor, data, cid, sid):
     '''Displays the movie screen.
@@ -165,7 +188,7 @@ def movieScreenMenu(movies, selection, cursor, data, cid, sid):
         
         else:
             global watchingList
-            watchingList.append((selectedtitle, perf_counter()))          #perfcounter records the current CPU time.
+            watchingList.append((selectedmid, selectedtitle, perf_counter()))          #perfcounter records the current CPU time.
             
         return
     

@@ -285,7 +285,7 @@ def main():
                 else:
                     select.handleMovies(cursor, data, cid, None)
             elif option == '3':
-                select.endMovie()
+                select.endOneMovie(cursor, data, cid, sid)
             elif option == '4':
                 cursor.execute('SELECT * FROM sessions WHERE cid = (?)',(cid,))
                 session = cursor.fetchone()

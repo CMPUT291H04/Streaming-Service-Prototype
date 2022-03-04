@@ -334,10 +334,10 @@ def displayMatchesLE5(matches):
         try:
                 choice = int(choice) - 1
         except:
-            print('ERROR: Invalid selection, please try again and make sure you type just the corresponding number or scroll letter.\n')   #If choice is a non-valid string.
+            print('ERROR: Invalid selection, please try again and make sure you type just the corresponding number.\n')   #If choice is a non-valid string.
         else:
             if choice not in range(len(matches)):
-                print('ERROR: Invalid selection, please try again and make sure you type just the corresponding number or scroll letter.\n')    #If choice is a non-valid integer.              
+                print('ERROR: Invalid selection, please try again and make sure you type just the corresponding number.\n')    #If choice is a non-valid integer.              
     
     return choice
 

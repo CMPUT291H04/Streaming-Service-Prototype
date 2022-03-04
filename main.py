@@ -287,14 +287,17 @@ def main():
                     print('Session started!')
 
             elif option == '2':
-                print(sid)
                 if sessionOpen:
                     select.handleMovies(cursor, data, cid, sid)
                 else:
                     select.handleMovies(cursor, data, cid, None)
 
             elif option == '3':
-                select.endOneMovie(cursor, data, cid, sid)
+                if sessionOpen:
+                    select.endMovie(cursor, data, cid, sid)
+                else:
+                    select.endMovie(None, None, None, None)
+                    
                 
             elif option == '4':
                 cursor.execute('SELECT * FROM sessions WHERE cid = (?)',(cid,))

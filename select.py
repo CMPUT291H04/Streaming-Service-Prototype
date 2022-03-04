@@ -126,61 +126,120 @@ def followCastMenu(movies, selection, cursor, data, cid):
 
 
 
-def endOneMovieFromOne(cursor, data, cid, sid):
-    mid = watchingList[0][0]
-    title = watchingList[0][1]
-    runtime = watchingList[0][2]
-    timestarted = watchingList[0][3] 
+def endOneMovie(cursor, data, cid, sid, movieindex):
     
-    print("Are you sure you want to stop watching", title + " (y/n)?", end = '')
-    stopchoice = input().lower()        
-    while stopchoice not in ['y', 'n', 'yes', 'no']:
+    mid = watchingList[movieindex][0]
+    title = watchingList[movieindex][1]
+    runtime = watchingList[movieindex][2]
+    timestarted = watchingList[movieindex][3] 
+    
+    duration = int((perf_counter() - timestarted)/60)        #Current time - time started, and converted to integer minutes (rounded down, design choice).
+    if duration > runtime:
+        duration = runtime
+    
+    cursor.execute("INSERT INTO watch VALUES (:sid, :cid, :mid, :duration);", {"sid": sid, "cid": cid, "mid": mid, "duration": duration})
+    data.commit()
+    
+    watchingList.pop(movieindex)      #Remove movie being watched from the watching list.
+        
+    return
+
+
+
+def endOneMovieFromGT5(cursor, data, cid, sid):
+    
+    scroll_pos = 0
+    choice = -1
+    while choice not in range(len(watchingList)):
+        
+        print("You are currently watching", len(watchingList), "movies, please select which one you want to stop watching:\n")
+        
+        for i in range(5):
+            print(str(i+1+scroll_pos) + '. ' + str(watchingList[i+scroll_pos][1]))
+        
+        choice = input("\nPlease choose a movie by typing its corresponding number, or scroll down and up with 'S' or 'W' respectively: ")     
         os.system('cls||clear')
-        print("ERROR: Invalid selection, please try again and make sure you type either 'y' or 'n'.\n")
-        print("Are you sure you want to stop watching", title + " (y/n)?", end = '')
-        stopchoice = input().lower()
+        
+        if choice in ['s', 'S']:
+            if (5 + scroll_pos) >= len(watchingList):
+                print('You are at the end of the results, can not scroll down any further.\n')
+            else:
+                scroll_pos += 1
+        
+        elif choice in ['w', 'W']:
+            if scroll_pos == 0:
+                print('Already at the top of the results, can not scroll up any further.\n')
+            else:
+                scroll_pos -= 1
+        
+        else:
+            try:
+                choice = int(choice) - 1
+            except:
+                print('ERROR: Invalid selection, please try again and make sure you type just the corresponding number or scroll letter.\n')   #If choice is a non-valid string.
+            else:
+                if choice not in range(len(watchingList)):
+                    print('ERROR: Invalid selection, please try again and make sure you type just the corresponding number or scroll letter.\n')    #If choice is a non-valid integer.                   
     
-    if stopchoice in ['n', 'no']:
-        pass
-    
-    else:    
-        duration = int((perf_counter() - timestarted)/60)        #Current time - time started, and converted to integer minutes (rounded down, design choice).
-        if duration > runtime:
-            duration = runtime
-        
-        cursor.execute("INSERT INTO watch VALUES (:sid, :cid, :mid, :duration);", {"sid": sid, "cid": cid, "mid": mid, "duration": duration})
-        data.commit()
-        
-        watchingList.pop()      #Remove only movie being watched from the watching list.
-        
+    endOneMovie(cursor, data, cid, sid, choice)
+ 
     return
 
 
 
-def endOneMovieFromMany(cursor, data, cid, sid):
+def endOneMovieFromLE5(cursor, data, cid, sid):
     
-    print("You are watching multiple movies, please select which one you want to stop watching:\n")
+    choice = None
+    while choice not in range(len(watchingList)):
+        
+        print("You are currently watching", len(watchingList), "movie(s), please select which one you want to stop watching:\n")
+        
+        for i in range(len(watchingList)):
+            print(str(i+1) + '. ' + watchingList[i][1])      
+        
+        choice = input('\nPlease choose a movie by typing its corresponding number: ')
+        
+        os.system('cls||clear')
+        
+        try:
+                choice = int(choice) - 1
+        except:
+            print('ERROR: Invalid selection, please try again and make sure you type just the corresponding number or scroll letter.\n')   #If choice is a non-valid string.
+        else:
+            if choice not in range(len(watchingList)):
+                print('ERROR: Invalid selection, please try again and make sure you type just the corresponding number or scroll letter.\n')    #If choice is a non-valid integer.              
     
-    pass
+    endOneMovie(cursor, data, cid, sid, choice)  
     
     return
 
 
 
-def endOneMovie(cursor, data, cid, sid):
+def endMovie(cursor, data, cid, sid):
     
     os.system('cls||clear') 
-    
-    if len(watchingList) == 1:
-        endOneMovieFromOne(cursor, data, cid, sid)
+    if len(watchingList) == 0:
+        input("You aren't currently watching any movies.\n\nPress enter to return...")
+        
+    elif len(watchingList) <= 5:
+        endOneMovieFromLE5(cursor, data, cid, sid)
     
     else:
-        endOneMovieFromMany(cursor, data, cid, sid)
+        endOneMovieFromGT5(cursor, data, cid, sid)
      
     return
 
 
 
+def endAllMovies(cursor, data, cid, sid):
+    
+    while len(watchingList) != 0:
+        endOneMovie(cursor, data, cid, sid, 0)
+    
+    return
+
+
+    
 def movieScreenMenu(movies, selection, cursor, data, cid, sid):
     '''Displays the movie screen.
      Args:
@@ -260,16 +319,18 @@ def displayMatchesLE5(matches):
     Returns:
             Users's movie selection.
     '''   
-    choice = -1
+    choice = None
     while choice not in range(len(matches)):
         
-        print('Search has returned', len(matches), 'results.\n')
+        print('Search has returned', len(matches), 'result(s).\n')
         
         for i in range(len(matches)):
             print(str(i+1) + '. ' + matches[i][0], '| Year: ' + str(matches[i][1]), '| Runtime: ' + str(matches[i][2]) + ' minutes')             
         
         choice = input('\nPlease choose a movie by typing its corresponding number: ')
+        
         os.system('cls||clear')
+        
         try:
                 choice = int(choice) - 1
         except:

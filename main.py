@@ -184,6 +184,7 @@ def sessionStart(cid):
     sdate = datetime.datetime.now()
     cursor.execute('INSERT INTO sessions VALUES (?,?,?,?)',(sid,cid,sdate,None))
     data.commit()
+    return sid
 
 def sessionEnd(sid):
     # get sdate from the session
@@ -246,9 +247,9 @@ def main():
                 cursor.execute('SELECT * FROM customers WHERE cid = (?)',(cid,))
                 print(f'Welcome {name}!\n')
                 if sessionOpen == True:
-                    cursor.execute('SELECT * FROM sessions WHERE cid = (?)',(cid,))
-                    session = cursor.fetchone()
-                    sid = session[0]
+                    #cursor.execute('SELECT * FROM sessions WHERE cid = (?)',(cid,))
+                    #session = cursor.fetchone()
+                    #sid = session[0]
                     print(f'Current session open: {sid}')
                 print('Please select an option below')
                 print('[1] Begin a new session')
@@ -263,30 +264,38 @@ def main():
                 print('Logging out..')
                 time.sleep(2)
                 break
+
             elif option == '1' and editor == True:
                 # add movie
                 pass
+
             elif option == '2' and editor == True:
                 # update recommendation
                 pass
+
             elif option == '3' and editor == True:
                 # register a new editor
                 newUserScreen(2)
+
             elif option == '1':
+                # open session
                 if sessionOpen == True:
                     print('You already have a session open!')
                 else:
-                    sessionStart(cid)
+                    sid = sessionStart(cid)
                     sessionOpen = True
                     print('Session started!')
+
             elif option == '2':
                 print(sid)
                 if sessionOpen:
                     select.handleMovies(cursor, data, cid, sid)
                 else:
                     select.handleMovies(cursor, data, cid, None)
+
             elif option == '3':
                 select.endOneMovie(cursor, data, cid, sid)
+                
             elif option == '4':
                 cursor.execute('SELECT * FROM sessions WHERE cid = (?)',(cid,))
                 session = cursor.fetchone()

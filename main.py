@@ -194,8 +194,8 @@ def sessionEnd(sid):
     # find the duration by subtracting the current time from the start time
     # help for the datetime arithemtic from here:
     # https://stackoverflow.com/questions/1345827/how-do-i-find-the-time-difference-between-two-datetime-objects-in-python
-
-    duration = datetime.datetime.now() - datetime.datetime.strptime(queryVal[0],'%Y-%m-%d %H:%M:%S')
+    
+    duration = datetime.datetime.now() - datetime.datetime.strptime(queryVal[0][:-7],'%Y-%m-%d %H:%M:%S')
     duration = duration.total_seconds()
     minutes = divmod(duration,60)[0]
     
@@ -261,6 +261,9 @@ def main():
 
             option = input('Please type your choice: ')
             if option == '0':
+                if sessionOpen == True:
+                    sessionEnd(sid)
+                    select.endAllMovies(cursor,data,cid,sid)
                 print('Logging out..')
                 time.sleep(2)
                 break
@@ -300,12 +303,14 @@ def main():
                     
                 
             elif option == '4':
-                cursor.execute('SELECT * FROM sessions WHERE cid = (?)',(cid,))
-                session = cursor.fetchone()
-                sid = session[0]
-                print('Closing your session...')
-                sessionEnd(sid)
-                sessionOpen = False
+                if sessionOpen == True:
+                    print(sid)
+                    print('Closing your session...')
+                    sessionEnd(sid)
+                    sessionOpen = False
+                    select.endAllMovies(cursor,data,cid,sid)
+                else:
+                    print('You do not currently have an open session!')
             
             else:
                 print('Invalid option, Please Try again')

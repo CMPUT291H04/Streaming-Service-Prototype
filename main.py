@@ -5,9 +5,19 @@ import sqlite3   # used for sql database manipulation
 import datetime  # used for recording session times 
 import select
 
-# change database name as needed
-data = sqlite3.connect('testdata.db')
-cursor = data.cursor()
+
+while True:
+        filename = input('Please enter the filename of your database: (ex: \'database.db\'): ')
+        if os.path.exists(filename):
+            data = sqlite3.connect(filename)
+            cursor = data.cursor()
+            break
+        else:
+            print('Sorry unable to connect to that database!')
+            time.sleep(3)
+            os.system('cls||clear')
+        
+            
 
 def loginScreen(user = 1):
     ''' Input: type of user [1] customers or [2] editor
@@ -206,6 +216,10 @@ def sessionEnd(sid):
     ''' Still need to figure out how we track how long the user has been wathcing a movie'''
 
 def main():
+
+    # change database name as needed
+    # opens data base one folder up
+    
     while True:
         sessionOpen = False
         os.system('cls||clear')     # these commands clear the terminal to make it look nicer

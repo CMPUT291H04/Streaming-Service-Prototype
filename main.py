@@ -369,8 +369,7 @@ def main():
                 pass
 
             elif option == '2' and editor == True:
-                # update recommendation
-                pass
+                updateRecommendation()
 
             elif option == '3' and editor == True:
                 # register a new editor
@@ -415,4 +414,4 @@ def main():
             time.sleep(1)
             os.system('cls||clear')
 
-updateRecommendation()
+main()

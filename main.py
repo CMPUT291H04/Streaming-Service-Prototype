@@ -17,7 +17,89 @@ while True:
             time.sleep(3)
             os.system('cls||clear')
         
+def updateRecommendation():
+    ''' Adds a recommendation for a movie.
+
+    '''
+    os.system('cls||clear')
+    cursor.execute('SELECT * FROM movies')
+    moviesData = cursor.fetchall()
+    stop = False
+
+    while True:
+        recommender = input('Select a movie to add a recommendation to: ')
+        for j in range(len(moviesData)):
+            if int(recommender) in moviesData[j]:
+                movieName = moviesData[j][1]
+                stop = True
+        if stop == True:
+            break
+        else:
+            print('No match found! Please search for another movieID')
+            time.sleep(1)
+            os.system('cls||clear')
+    
+
+    while True:
+        print(f'Currently adding a recommendation for [{movieName}]')
+        recommendation = input(f'Select a movie to recommend for [{movieName}]: ')
+        if recommendation == recommender:
+            print('You cannot recommend a movie to iteself!')
+            time.sleep(1)
+            os.system('cls||clear')
+        else:
+            for j in range(len(moviesData)):
+                if int(recommendation) in moviesData[j]:
+                    movieName2 = moviesData[j][1]
+                    stop = True
+            if stop == True:
+             break
+            else:
+                print('No match found! Please search for another movieID')
+                time.sleep(1)
+                os.system('cls||clear')
+    
+    cursor.execute('SELECT * FROM recommendations')
+    recommendedMovies = cursor.fetchall()
+
+    match = False
+    for pair in recommendedMovies:
+        if pair[0] == int(recommender) and pair[1] == int(recommendation):
+            match = True
+        
+    if match == True:
+        
+        while True:
+            print(f'Currently updating the recommendation of {movieName2} to {movieName}')
+            score = float(input('Please add a score from 0-1: '))
+            if score > 1 or score < 0:
+                print('That is an invalid score!')
+                time.sleep(1)
+                os.system('cls||clear')
+                
+            else:
+                print(f'Updating {movieName2} as a recommendation for {movieName} with a score of {score}')
+                cursor.execute(f'UPDATE recommendations SET score = (?) WHERE watched = (?) AND recommended = (?)',(score, recommender,recommendation))
+                data.commit()
+                break
+
+    else:
+        while True:
+            print(f'Currently recommending [{movieName2}] for [{movieName}]')
+            score = float(input('Please add a score from 0-1: '))
+            if score > 1 or score < 0:
+                print('That is an invalid score!')
+                time.sleep(1)
+                os.system('cls||clear')
+                
+            else:
+                print(f'Adding {movieName2} as a recommendation for {movieName} with a score of {score}')
+                cursor.execute(f'INSERT INTO recommendations VALUES (?,?,?)',(recommender,recommendation,score))
+                data.commit()
+                break
             
+
+
 
 def loginScreen(user = 1):
     ''' Input: type of user [1] customers or [2] editor
@@ -142,8 +224,8 @@ def newUserScreen(user = 1):
 def idGenerator(idType):
     ''' Generates id's. 
         If type = 1, function generates a cid (char(4) | cxxx)
-        If type = 2, function generates a pid (int | xxxx)
-        If type = 3, function generates a mid (char(4) | mxxx)
+        If type = 2, function generates a pid (char(4) | pxxx)
+        If type = 3, function generates a mid (int | xxxx)
         If type = 4, function generetes a sid (int | xxxx)
         If type = 5, function generates a eid (char(4) | exxx)
     '''
@@ -158,14 +240,14 @@ def idGenerator(idType):
                 # value is not in the table, so it is a good id and we can add it
                 break 
         elif idType == 2:
-            retVal = str(random.randrange(1,9999)).zfill(4)
+            retVal = 'p' + str(random.randrange(1,999)).zfill(3)
             cursor.execute('SELECT pid FROM moviePeople WHERE pid = (?)',(retVal,))
             row_count = cursor.fetchone()
             if not row_count:
                 # value is not in the table, so it is a good id and we can add it
                 break 
         elif idType == 3:
-            retVal = 'm' + str(random.randrange(1,999)).zfill(3)
+            retVal = str(random.randrange(1,9999)).zfill(3)
             cursor.execute('SELECT mid FROM movies WHERE mid = (?)',(retVal,))
             row_count = cursor.fetchone()
             if not row_count0:
@@ -333,4 +415,4 @@ def main():
             time.sleep(1)
             os.system('cls||clear')
 
-main()
+updateRecommendation()

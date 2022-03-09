@@ -7,97 +7,173 @@ import select
 
 
 while True:
-        filename = input('Please enter the filename of your database: (ex: \'database.db\'): ')
-        if os.path.exists(filename):
-            data = sqlite3.connect(filename)
-            cursor = data.cursor()
-            break
+    filename = input('Please enter the filename of your database: (ex: \'database.db\'): ')
+    if os.path.exists(filename):
+        data = sqlite3.connect(filename)
+        cursor = data.cursor()
+        break
+    else:
+        print('Sorry unable to connect to that database!')
+        time.sleep(3)
+        os.system('cls||clear')
+
+
+def askScore(m1name, m2name):
+    '''Keeps prompting user for a valid year until one is given.
+    Args:
+            None
+    Returns:
+            integer year
+    '''             
+    validscore = False
+    while not validscore:
+        validscore = True
+        print("\nWhat score would you like to give", m1name, "|", m2name + '? ', end = '')
+        score = input()
+        try:
+            score = float(score)
+        except:
+            print("ERROR: score must be a number between 0 and 1, please try again.")
+            validscore = False
         else:
-            print('Sorry unable to connect to that database!')
-            time.sleep(3)
-            os.system('cls||clear')
+            if score < 0 or score > 1:
+                print("ERROR: score must be a number between 0 and 1, please try again.")
+                validscore = False                
+    return score     
+
+
+def handleRecommendations(watched):
+    if len(watched) == 0:
+        print('Looks like there is nothing here!')
+        input('\nPress enter to return...')
+        return
+    
+    elif len(watched) == 1:
+        print(watched[0][0], '-', watched[0][1])
+        input('\nPress enter to return...')
+        return        
+    
+    combs = []
+    while len(watched) > 1:
+        current = watched.pop(0)
+        for item in watched:
+            if item != current:
+                combs.append([current[0], current[1], current[2], item[0], item[1], item[2]])
+                combs.append([item[0], item[1], item[2], current[0], current[1], current[2]])
+    
+    reccomendlist = []
+    for comb in combs:
+        if comb[2] == comb[5] and comb not in reccomendlist:
+            reccomendlist.append(comb)
+    
+    for i in range(len(reccomendlist)):
+        reccomendlist[i] = (reccomendlist[i][0], reccomendlist[i][1], None, reccomendlist[i][3], reccomendlist[i][4], None)
         
+    
+    watched_count = {}
+    for pair in reccomendlist:
+        watched_count[pair] = watched_count.get(pair, 0) + 1        #Counts number of matches each hit got    
+    
+    pairs_sorted = select.dictToSortedList(watched_count)
+    
+    i = 1
+    even = 1
+    print("\nBelow is each pairing of movies watched in the same selected period of time, shown both ways. The last value is the recommened score ('NULL' if pair isn't in the database):\n")
+    for pair in pairs_sorted:
+        watched = pair[0]
+        recommended = pair[3]
+        cursor.execute("SELECT score from recommendations \
+                        WHERE watched = :watched AND recommended = :recommended;", {'watched': watched, 'recommended': recommended})
+        score = cursor.fetchone()
+
+        if score != None:
+            print(str(i) + '.', pair[1], pair[0], '|', pair[4], pair[3], '|', watched_count.get(pair, 0), "views", "|", score[0])
+            pairs_sorted[i-1] = (pairs_sorted[i-1], score[0])
+        else:
+            print(str(i) + '.', pair[1], pair[0], '|', pair[4], pair[3], '|', watched_count.get(pair, 0), "views", "| NULL")
+            pairs_sorted[i-1] = (pairs_sorted[i-1], score)
+        
+        if even % 2 == 0:
+            print()
+        even += 1
+        i += 1
+    
+    choice = None
+    while choice not in range(len(pairs_sorted)):
+        choice = input("\nWhich one would you like to give a score (and add to database) / update its score / delete from database (if exists): ")      
+        try:
+                choice = int(choice) - 1
+        except:
+            print('ERROR: Invalid selection, please try again and make sure you type just the corresponding number.')   #If choice is a non-valid string.
+        else:
+            if choice not in range(len(pairs_sorted)):
+                print('ERROR: Invalid selection, please try again and make sure you type just the corresponding number.')    #If choice is a non-valid integer.             
+    
+    m1name = pairs_sorted[choice][0][1]
+    m2name = pairs_sorted[choice][0][4] 
+    m1mid = pairs_sorted[choice][0][0]
+    m2mid = pairs_sorted[choice][0][3]
+    
+    if pairs_sorted[choice][1] == None:
+        score = askScore(m1name, m2name)
+        cursor.execute("INSERT INTO recommendations VALUES (:m1, :m2, :score);", {"m1": m1mid, "m2": m2mid, "score": score})
+        data.commit()
+    else:
+        choice = input("\nWould you like to delete this pair's score from the database, or update their score (d/u)? ").lower()
+        while choice not in ['d', 'delete', 'u', 'update']:
+            if choice not in ['d', 'delete', 'u', 'update']:
+                print('ERROR: Invalid selection, please try again and make sure you type just the corresponding letter.')
+                choice = input("\nWould you like to delete this pair's score from the database, or update their score (d/u)? ").lower()
+        
+        if choice in ['u', 'update']:
+            score = askScore(m1name, m2name)
+            cursor.execute("UPDATE recommendations \
+                            SET score = :score \
+                            WHERE watched = :m1 AND recommended = :m2;", {"m1": m1mid, "m2": m2mid, "score": score})
+            data.commit()
+        else:
+            cursor.execute("DELETE FROM recommendations \
+                            WHERE watched = :m1 AND recommended = :m2;", {"m1": m1mid, "m2": m2mid, "score": score})
+            data.commit()            
+    
+    return
+    
 def updateRecommendation():
     ''' Adds a recommendation for a movie.
 
     '''
     os.system('cls||clear')
-    cursor.execute('SELECT * FROM movies')
-    moviesData = cursor.fetchall()
-    stop = False
-
-    while True:
-        recommender = input('Select a movie to add a recommendation to: ')
-        for j in range(len(moviesData)):
-            if int(recommender) in moviesData[j]:
-                movieName = moviesData[j][1]
-                stop = True
-        if stop == True:
-            break
-        else:
-            print('No match found! Please search for another movieID')
-            time.sleep(1)
-            os.system('cls||clear')
-    
-
-    while True:
-        print(f'Currently adding a recommendation for [{movieName}]')
-        recommendation = input(f'Select a movie to recommend for [{movieName}]: ')
-        if recommendation == recommender:
-            print('You cannot recommend a movie to iteself!')
-            time.sleep(1)
-            os.system('cls||clear')
-        else:
-            for j in range(len(moviesData)):
-                if int(recommendation) in moviesData[j]:
-                    movieName2 = moviesData[j][1]
-                    stop = True
-            if stop == True:
-             break
-            else:
-                print('No match found! Please search for another movieID')
-                time.sleep(1)
-                os.system('cls||clear')
-    
-    cursor.execute('SELECT * FROM recommendations')
-    recommendedMovies = cursor.fetchall()
-
-    match = False
-    for pair in recommendedMovies:
-        if pair[0] == int(recommender) and pair[1] == int(recommendation):
-            match = True
+    rtype = input("Would you like to see a daily, monthly, or annual report (d/m/a)? ").lower()
+    while rtype not in ['d', 'daily', 'm', 'monthly', 'a', 'annual']:
+        os.system('cls||clear')
+        print('ERROR: Invalid selection, please try again and make sure you type just the corresponding letter.\n')
+        rtype = input("Would you like to see a daily, monthly, or annual report (d/m/a)? ")
         
-    if match == True:
-        
-        while True:
-            print(f'Currently updating the recommendation of {movieName2} to {movieName}')
-            score = float(input('Please add a score from 0-1: '))
-            if score > 1 or score < 0:
-                print('That is an invalid score!')
-                time.sleep(1)
-                os.system('cls||clear')
-                
-            else:
-                print(f'Updating {movieName2} as a recommendation for {movieName} with a score of {score}')
-                cursor.execute(f'UPDATE recommendations SET score = (?) WHERE watched = (?) AND recommended = (?)',(score, recommender,recommendation))
-                data.commit()
-                break
-
+    if rtype in ['d', 'daily']:
+        cursor.execute("SELECT w.mid, m.title, c.cid \
+                    FROM sessions s, watch w, movies m, customers c \
+                    WHERE w.sid = s.sid AND m.mid = w.mid \
+                    AND w.cid = s.cid AND c.cid = w.cid \
+                    AND s.sdate BETWEEN datetime('now', 'start of day') AND datetime('now', 'localtime');")
+        watched = cursor.fetchall()
+    
+    elif rtype in ['m', 'monthly']:
+        cursor.execute("SELECT w.mid, m.title, c.cid \
+                    FROM sessions s, watch w, movies m, customers c \
+                    WHERE w.sid = s.sid AND m.mid = w.mid \
+                    AND w.cid = s.cid AND c.cid = w.cid \
+                    AND s.sdate BETWEEN datetime('now', '-29 days') AND datetime('now', 'localtime');") 
+        watched = cursor.fetchall()
+    
     else:
-        while True:
-            print(f'Currently recommending [{movieName2}] for [{movieName}]')
-            score = float(input('Please add a score from 0-1: '))
-            if score > 1 or score < 0:
-                print('That is an invalid score!')
-                time.sleep(1)
-                os.system('cls||clear')
-                
-            else:
-                print(f'Adding {movieName2} as a recommendation for {movieName} with a score of {score}')
-                cursor.execute(f'INSERT INTO recommendations VALUES (?,?,?)',(recommender,recommendation,score))
-                data.commit()
-                break
-            
+        cursor.execute("SELECT w.mid, m.title, c.cid \
+                    FROM sessions s, watch w, movies m, customers c \
+                    WHERE w.sid = s.sid AND m.mid = w.mid \
+                    AND w.cid = s.cid AND c.cid = w.cid \
+                    AND s.sdate BETWEEN datetime('now', '-364 days') AND datetime('now', 'localtime');") 
+        watched = cursor.fetchall() 
+    
+    handleRecommendations(watched)
 
 
 
@@ -365,8 +441,7 @@ def main():
                 break
 
             elif option == '1' and editor == True:
-                # add movie
-                pass
+                select.addMovie(cursor, data)
 
             elif option == '2' and editor == True:
                 updateRecommendation()

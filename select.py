@@ -4,7 +4,7 @@ from time import perf_counter
 
 global watchingList
 watchingList = []
-
+#NOTEEEEEEEEEEEEE: ERROR WHEN ENDING MULTIPLE MOVIES WITH SAME NAME 
 def printMovieInfo(movies, selection, cursor):
     '''Displays more information about a selected movie.
      Args:
@@ -418,13 +418,14 @@ def dictToSortedList(hitDict):
         Returns:
             A list containing keys from the dictionary, sorted.
     ''' 
+    dictCopy = hitDict.copy()
     sorted_values_list = []
-    sorted_values = sorted(hitDict.values(), reverse=True)
+    sorted_values = sorted(dictCopy.values(), reverse=True)
     for value in sorted_values:
-        for key in hitDict.keys():
-            if hitDict.get(key, 0) == value:
+        for key in dictCopy.keys():
+            if dictCopy.get(key, 0) == value:
                 sorted_values_list.append(key)
-                hitDict.pop(key)
+                dictCopy.pop(key)
                 break
     
     return sorted_values_list
@@ -463,7 +464,7 @@ def searchWordsMenu(cursor):
     
     return hits_sorted
 
-
+ 
 
 def handleMovies(cursor, data, cid, sid):
     '''Manages the movie search section.
@@ -485,3 +486,219 @@ def handleMovies(cursor, data, cid, sid):
     
     return
 
+
+
+def midExists(cursor, mid):
+    mid = (mid,)
+    cursor.execute("SELECT mid FROM movies;")
+    mids = cursor.fetchall()
+    if mid in mids:
+        print("ERROR: another movie already has this mid, please try again.\n")
+        return True
+    else:
+        return False
+
+
+
+def pidExists(cursor, pid):
+    pid = (pid,)
+    cursor.execute("SELECT pid FROM casts;")
+    pids = cursor.fetchall()
+    if pid in pids:
+        return True
+    else:
+        return False
+
+
+
+def addCast(cursor, data, mid):
+    validpid = False   
+    while not validpid:
+        validpid = True
+        
+        pid = input("\nPlease provide the pid of a cast member. The pid should follow the format pxxx (where xxx is a 3-digit integer): ")    
+        if pid[0] != 'p' or len(pid) != 4:
+            print("ERROR: pid is not valid, please try again.")
+            validpid = False
+        try:
+            int(pid[1:4])
+        except:
+            print("ERROR: pid is not valid, please try again.")
+            validpid = False
+    
+    if pidExists(cursor, pid):
+        print("ERROR: This pid already exists, please try another one.")
+        addCast(cursor, data)
+    
+    else:
+        validyear = False
+        while not validyear:
+            validyear = True
+            year = input("\nPlease provide the birthyear of the actor: ")      #Didn't give year time constraints because movie might be coming out in the future.
+            try:
+                year = int(year)
+            except:
+                print("ERROR: year must be an integer, please try again.")
+                validyear = False
+        name = input("\nPlease provide the actor name: ")
+        role = input("\nPlease provide the actor role: ")
+        cursor.execute("INSERT INTO moviePeople VALUES (:pid, :name, :year);", {"pid": pid, "name": name, "year": year})
+        data.commit()     
+        cursor.execute("INSERT INTO casts VALUES (:mid, :pid, :role);", {"mid": mid, "pid": pid, "role": role})
+        data.commit()
+        print("Added", name, "as a member of the cast!")
+        input('\n Press enter to return...')  
+    
+    return
+
+
+
+def askCast(cursor, data, mid):
+    '''Supporting function for addMovie() that asks for cast to be added to movie.
+    Args:
+            None
+    Returns:
+            None
+    '''         
+    validpid = False   
+    while not validpid:
+        validpid = True
+        
+        pid = input("\nPlease provide the pid of a cast member. The pid should follow the format pxxx (where xxx is a 3-digit integer): ")    
+        if pid[0] != 'p' or len(pid) != 4:
+            print("ERROR: pid is not valid, please try again.")
+            validpid = False
+        try:
+            int(pid[1:4])
+        except:
+            print("ERROR: pid is not valid, please try again.")
+            validpid = False
+            
+    if pidExists(cursor, pid):
+        cursor.execute("SELECT mp.name, mp.birthYear \
+                FROM moviePeople mp, casts c \
+                WHERE mp.pid = c.pid AND c.pid = :pid", {"pid": pid})
+        nameyear = cursor.fetchone()
+        name, year = nameyear[0], nameyear[1]
+        
+        print("The cast member you chose is:\n\tName:", name, "\n\tBirthyear:", year)
+        role = input("Type the role that this actor will play: ")
+    
+        cursor.execute("INSERT INTO casts VALUES (:mid, :pid, :role);", {"mid": mid, "pid": pid, "role": role})
+        data.commit()
+        
+    
+    else:
+        choice = input("\nCast member does not exist. Would you like to insert a cast member and add him as part of the cast (y/n)? ")
+        if choice.lower in ['n', 'no']:
+            return
+        else:
+            addCast(cursor, data, mid)
+            return
+
+
+
+def askMid(cursor):
+    '''Keeps prompting user for a valid mid until one is given.
+    Args:
+            None
+    Returns:
+            integer mid
+    '''         
+    validmid = False 
+    while not validmid:  
+        validmid = True 
+        mid = input("Please provide a unique integer id for the movie: ")   
+        try:
+            mid = int(mid)
+        except:
+            validmid = False
+            print("ERROR: mid is not valid, please try again.\n")
+        else:
+            validmid = not midExists(cursor, mid)    
+    return mid
+
+
+
+def askYear():
+    '''Keeps prompting user for a valid year until one is given.
+    Args:
+            None
+    Returns:
+            integer year
+    '''             
+    validyear = False
+    while not validyear:
+        validyear = True
+        year = input("\nPlease provide a year for the movie: ")      #Didn't give year time constraints because movie might be coming out in the future.
+        try:
+            year = int(year)
+        except:
+            print("ERROR: year must be an integer, please try again.")
+            validyear = False
+    return year       
+        
+            
+       
+def askRuntime():
+    '''Keeps prompting user for a valid runtime until one is given.
+    Args:
+            None
+    Returns:
+            integer runtime
+    '''                 
+    validruntime = False
+    while not validruntime:
+        validruntime = True
+        runtime = input("\nPlease provide a runtime for the movie: ")      #Didn't give year time constraints because movie might be coming out in the future.
+        try:
+            runtime = int(runtime)
+        except:
+            print("ERROR: runtime must be an integer, please try again.")
+            validruntime = False
+    return runtime
+
+
+
+def addMovie(cursor, data):
+    '''Handles the functionality of adding movies to the database for editors.
+    Args:
+            None
+    Returns:
+            None
+    '''     
+    os.system('cls||clear')
+    
+    mid = askMid(cursor)     
+    title = input("\nPlease provide a title for the movie: ") 
+    year = askYear()
+            
+    validruntime = False
+    while not validruntime:
+        validruntime = True
+        runtime = input("\nPlease provide a runtime for the movie: ")      #Didn't give year time constraints because movie might be coming out in the future.
+        try:
+            runtime = int(runtime)
+        except:
+            print("ERROR: runtime must be an integer, please try again.")
+            validruntime = False
+    
+    print("Are you sure you want to add:\n\tMid:", str(mid), "\n\tTitle:", title, "\n\tYear:", str(year), "\n\truntime", str(runtime))
+    choice = input("to the database (y/n)?: ")
+    if choice.lower() in ['n', 'no']:
+        return
+    
+    cursor.execute("INSERT INTO movies VALUES (:mid, :title, :year, :runtime);", {"mid": mid, "title": title, "year": year, "runtime": runtime})
+    data.commit()
+    
+    askCast(cursor, data, mid)
+    choice = input("\nAdd another cast member (y/n)? ")
+    while True:
+        if choice.lower() in ['y', 'yes']:
+            askCast(cursor, data, mid)
+            choice = input("\nAdd another cast member (y/n)? ")   
+        elif choice.lower() in ['n', 'no']:
+            break  
+        else:
+            print('ERROR: Invalid selection, please try again')
+            choice = input("\nAdd another cast member (y/n)? ")

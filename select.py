@@ -4,7 +4,7 @@ from time import perf_counter
 
 global watchingList
 watchingList = []
-#NOTEEEEEEEEEEEEE: ERROR WHEN ENDING MULTIPLE MOVIES WITH SAME NAME 
+
 def printMovieInfo(movies, selection, cursor):
     '''Displays more information about a selected movie.
      Args:
@@ -13,6 +13,7 @@ def printMovieInfo(movies, selection, cursor):
     Returns:
             None
     '''
+    
     selectedtitle = movies[selection][0]
     selectedyear = movies[selection][1]
     selectedruntime = movies[selection][2]
@@ -55,6 +56,7 @@ def checkIfFollowing(cursor, cid, pid):
         Returns:
                 None
     ''' 
+    
     cursor.execute('SELECT COUNT(*) FROM follows \
                     WHERE cid = :cid AND pid = :pid', {"cid": cid, "pid": pid})
     
@@ -73,6 +75,7 @@ def followCastMenu(movies, selection, cursor, data, cid):
     Returns:
             None
     '''    
+    
     selectedtitle = movies[selection][0]
     selectedmid = movies[selection][3]
     
@@ -127,6 +130,14 @@ def followCastMenu(movies, selection, cursor, data, cid):
 
 
 def endOneMovie(cursor, data, cid, sid, movieindex):
+    '''Ends a single movie and adds it to the database.
+    Args:
+            -The cid of a user.
+            -The sid of a session.
+            -index of a movie in the current watchlist.
+    Returns:
+            None
+    '''                    
     
     mid = watchingList[movieindex][0]
     title = watchingList[movieindex][1]
@@ -147,6 +158,13 @@ def endOneMovie(cursor, data, cid, sid, movieindex):
 
 
 def endOneMovieFromGT5(cursor, data, cid, sid):
+    '''Handles the sub-functionality of deleting a movie while more than 5 movies are being played.
+    Args:
+            -The cid of a user.
+            -The sid of a session.
+    Returns:
+            None
+    '''                    
     
     scroll_pos = 0
     choice = -1
@@ -188,6 +206,13 @@ def endOneMovieFromGT5(cursor, data, cid, sid):
 
 
 def endOneMovieFromLE5(cursor, data, cid, sid):
+    '''Handles the sub-functionality of deleting a movie while 5 or less movies are being played.
+    Args:
+            -The cid of a user.
+            -The sid of a session.
+    Returns:
+            None
+    '''             
     
     choice = None
     while choice not in range(len(watchingList)):
@@ -216,6 +241,13 @@ def endOneMovieFromLE5(cursor, data, cid, sid):
 
 
 def endMovie(cursor, data, cid, sid):
+    '''Ends a movie(s) currently being played in the session.
+    Args:
+            -The cid of a user.
+            -The sid of a session.
+    Returns:
+            None
+    '''            
     
     os.system('cls||clear') 
     if len(watchingList) == 0:
@@ -232,6 +264,13 @@ def endMovie(cursor, data, cid, sid):
 
 
 def endAllMovies(cursor, data, cid, sid):
+    '''Ends all movies currently being played in the session.
+    Args:
+            -The cid of a user.
+            -The sid of a session.
+    Returns:
+            None
+    '''             
     
     while len(watchingList) != 0:
         endOneMovie(cursor, data, cid, sid, 0)
@@ -255,12 +294,12 @@ def movieScreenMenu(movies, selection, cursor, data, cid, sid):
     selectedmid = movies[selection][3]
     
     
-    print('You are now in \"' + selectedtitle + '\'s\" ' + 'movie screen, please select one of the following:\n[1]Follow a member of the cast\n[2]Watch movie\n')
+    print('You are now in \"' + selectedtitle + '\'s\" ' + 'movie screen, please select one of the following:\n[1] Follow a member of the cast\n[2] Watch movie\n')
     mchoice = input('Please type choice here: ')    
     while mchoice not in ['1', '2']:
         os.system('cls||clear')
         print('ERROR: Invalid selection, please try again and make sure you type just the corresponding number.\n')
-        print('You are now in \"' + selectedtitle + '\'s\" ' + 'movie screen, please select one of the following:\n[1]Follow a member of the cast\n[2]Watch movie\n')
+        print('You are now in \"' + selectedtitle + '\'s\" ' + 'movie screen, please select one of the following:\n[1] Follow a member of the cast\n[2] Watch movie\n')
         mchoice = input('Please type choice here: ')
     
     if mchoice == '1':
@@ -275,6 +314,11 @@ def movieScreenMenu(movies, selection, cursor, data, cid, sid):
         
         else:
             global watchingList
+            for movie in watchingList:
+                if selectedtitle == movie[1]:
+                    print("You are already watching this movie in this session")
+                    input("\nPress enter to enter...")
+                    return
             watchingList.append((selectedmid, selectedtitle, selectedruntime, perf_counter()))          #perfcounter records the current CPU time.
             
         return
@@ -350,6 +394,7 @@ def displayMatchesGT5(matches):
     Returns:
             Users's movie selection.
     ''' 
+    
     scroll_pos = 0
     choice = -1
     while choice not in range(len(matches)):
@@ -489,6 +534,13 @@ def handleMovies(cursor, data, cid, sid):
 
 
 def midExists(cursor, mid):
+    '''Checks wether a given mid already exists in a database.
+    Args:
+            The mid of a movie.
+    Returns:
+            Wether the mid exists or not.
+    '''         
+    
     mid = (mid,)
     cursor.execute("SELECT mid FROM movies;")
     mids = cursor.fetchall()
@@ -501,6 +553,13 @@ def midExists(cursor, mid):
 
 
 def pidExists(cursor, pid):
+    '''Checks wether a given pid already exists in a database.
+    Args:
+            The mid of a movie.
+    Returns:
+            Wether the mid exists or not.
+    '''   
+    
     pid = (pid,)
     cursor.execute("SELECT pid FROM casts;")
     pids = cursor.fetchall()
@@ -512,6 +571,13 @@ def pidExists(cursor, pid):
 
 
 def addCast(cursor, data, mid):
+    '''Handles the sub-functionality of adding a cast member.
+    Args:
+            The mid of a movie.
+    Returns:
+            None
+    '''         
+    
     validpid = False   
     while not validpid:
         validpid = True
@@ -556,10 +622,11 @@ def addCast(cursor, data, mid):
 def askCast(cursor, data, mid):
     '''Supporting function for addMovie() that asks for cast to be added to movie.
     Args:
-            None
+            The mid of a movie.
     Returns:
             None
     '''         
+    
     validpid = False   
     while not validpid:
         validpid = True
@@ -604,7 +671,8 @@ def askMid(cursor):
             None
     Returns:
             integer mid
-    '''         
+    '''      
+    
     validmid = False 
     while not validmid:  
         validmid = True 
@@ -626,7 +694,8 @@ def askYear():
             None
     Returns:
             integer year
-    '''             
+    '''  
+    
     validyear = False
     while not validyear:
         validyear = True
@@ -646,7 +715,8 @@ def askRuntime():
             None
     Returns:
             integer runtime
-    '''                 
+    '''          
+    
     validruntime = False
     while not validruntime:
         validruntime = True
@@ -667,6 +737,7 @@ def addMovie(cursor, data):
     Returns:
             None
     '''     
+    
     os.system('cls||clear')
     
     mid = askMid(cursor)     

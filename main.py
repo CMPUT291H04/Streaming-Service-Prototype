@@ -43,6 +43,12 @@ def askScore(m1name, m2name):
 
 
 def handleRecommendations(watched):
+    '''Handles the data returned from the recommendations table and displays it to the user in a presentable format.
+     Args:
+            a list of watched movies.
+    Returns:
+            None
+    '''             
     if len(watched) == 0:
         print('Looks like there is nothing here!')
         input('\nPress enter to return...')
@@ -65,6 +71,10 @@ def handleRecommendations(watched):
     for comb in combs:
         if comb[2] == comb[5] and comb not in reccomendlist:
             reccomendlist.append(comb)
+    
+    if len(reccomendlist) == 0:
+        print("No two movies have been watched by the same user")
+        input("\nPress enter to enter...")
     
     for i in range(len(reccomendlist)):
         reccomendlist[i] = (reccomendlist[i][0], reccomendlist[i][1], None, reccomendlist[i][3], reccomendlist[i][4], None)
@@ -139,9 +149,12 @@ def handleRecommendations(watched):
     return
     
 def updateRecommendation():
-    ''' Adds a recommendation for a movie.
-
-    '''
+    ''' Updates recommendation for a movie.
+     Args:
+            None
+    Returns:
+            None
+    '''             
     os.system('cls||clear')
     rtype = input("Would you like to see a daily, monthly, or annual report (d/m/a)? ").lower()
     while rtype not in ['d', 'daily', 'm', 'monthly', 'a', 'annual']:
@@ -171,10 +184,14 @@ def updateRecommendation():
                     WHERE w.sid = s.sid AND m.mid = w.mid \
                     AND w.cid = s.cid AND c.cid = w.cid \
                     AND s.sdate BETWEEN datetime('now', '-364 days') AND datetime('now', 'localtime');") 
-        watched = cursor.fetchall() 
+        watched = cursor.fetchall()
+    
+    if len(watched) <= 1:
+        print("Not enough movies to update recommendations.")
+        input("Press enter to return...")
+        return
     
     handleRecommendations(watched)
-
 
 
 def loginScreen(user = 1):

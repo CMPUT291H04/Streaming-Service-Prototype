@@ -480,7 +480,7 @@ def dictToSortedList(hitDict):
 def searchWordsMenu(cursor):
     '''Searches for specified data from a given database based on user-inputted keywords.
         Args:
-            None.
+            None
         Returns:
             A list containing matching hits from the database, in sorted order based on how many keywords each hit matched with.
     ''' 

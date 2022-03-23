@@ -1,5 +1,9 @@
 Version 1.0.0
 
+RUNS ON PYTHON 3.10 AND SQLITE3 VERSIONS AND HIGHER, NO GUARANTEE FOR OLDER VERSIONS.
+
+MHUalbert and UAHammad are the same person.
+
 This prototype has 2 types of access. Editor access and customer access, each with appropriate supporting functionalities in the provided menu created in Python.
 
 Editors are capable of:
@@ -13,4 +17,4 @@ Editors are capable of:
   -Searching for actors.
   -Following an actor.
 
-MHUalbert and UAHammad are the same person.
+

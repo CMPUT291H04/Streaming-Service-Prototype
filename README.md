@@ -12,3 +12,5 @@ Editors are capable of:
   -Finding out more information about a movie, including: release year, views, runtime, and cast.
   -Searching for actors.
   -Following an actor.
+
+MHUalbert and UAHammad are the same person.
